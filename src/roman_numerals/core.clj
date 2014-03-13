@@ -17,17 +17,22 @@
               })
 
 (defn convert-char
-  [position part]
+  [[position part]]
   (cond
     (= 4 part) (str (prefix position) (convert-char position "5"))
     (= 9 part) (str (prefix position) (convert-char (inc position) "1"))
     :default (regular position)))
 
 (defn convert
-  [a]
-  )
+  [num-list]
+  (apply str (reduce convert-char num-list)))
+
+(defn order
+  [number]
+  (let [arabic (reverse (map (comp read-string str) (str number)))
+        positions (cycle [1 2 3])]
+    (map vector positions arabic)))
 
 (defn roman
   [x]
-  (let [arabic (str x)]
-    (convert arabic)))
+  (convert (order x)))
