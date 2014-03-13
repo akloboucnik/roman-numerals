@@ -7,32 +7,42 @@
               })
 
 (def regular {
-              1 "I"
-              5 "V"
-              10 "X"
-              50 "L"
-              100 "C"
-              500 "D"
-              1000 "M"
+              1 {1 "I" 2 "X" 3 "C" 4 "M"}
+              5 {1 "V" 2 "L" 3 "D"}
               })
 
-(defn convert-char
+(defn convert-regular
+  "Convert non-special case digit to roman digit."
   [[position part]]
   (cond
-    (= 4 part) (str (prefix position) (convert-char position "5"))
-    (= 9 part) (str (prefix position) (convert-char (inc position) "1"))
-    :default (regular position)))
+    (= part 0) ""
+    (< part 5) (apply str (repeat part ((regular 1) position)))
+    :default (str ((regular 5) position) (convert-regular [position (- part 5)]))))
+
+
+(defn convert-char
+  "Convert pair [order digit] into roman digits."
+  [[position part :as digit-pair]]
+  (cond
+    (and (= 4 part) (< position 4)) (str (prefix position) (convert-char [position 5]))
+    (and (= 9 part) (< position 4)) (str (prefix position) (convert-char [(inc position) 1]))
+    :default (convert-regular digit-pair)))
 
 (defn convert
   [num-list]
-  (apply str (reduce convert-char num-list)))
+  (apply str (reverse (map convert-char num-list))))
 
 (defn order
+  "Convert integer into list of [order digit] pairs."
   [number]
-  (let [arabic (reverse (map (comp read-string str) (str number)))
-        positions (cycle [1 2 3])]
-    (map vector positions arabic)))
+  (let [reverse-digits (->> (str number)
+                       (map #(Character/getNumericValue %))
+                       reverse)
+        positions (cycle [1 2 3 4])]
+    (map vector positions reverse-digits)))
 
 (defn roman
+  "Convert arabic number into its roman representation.
+  Works only for numbers < 5000."
   [x]
   (convert (order x)))
